@@ -1,0 +1,58 @@
+{
+  "name": "hirasso/php-autolink",
+  "description": "Autolink urls and email addresses in your HTML 🐘",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Rasso Hilber",
+      "email": "mail@rassohilber.com"
+    }
+  ],
+  "require": {
+    "php": "^8.4 | ^8.5"
+  },
+  "require-dev": {
+    "laravel/pint": "^1.20",
+    "pestphp/pest": "^3.7",
+    "pestphp/pest-plugin-watch": "^3.0",
+    "phpstan/phpstan": "^2.1"
+  },
+  "autoload": {
+    "psr-4": {
+      "Hirasso\\Prose\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+    }
+  },
+  "scripts": {
+    "format": "pint",
+    "test": "pest",
+    "test:watch": [
+      "Composer\\Config::disableProcessTimeout",
+      "pest --watch"
+    ],
+    "test:coverage": "php -d zend_extension=/Applications/Herd.app/Contents/Resources/xdebug/xdebug-84-arm64.so -d xdebug.mode=coverage ./vendor/bin/pest --coverage --coverage-html ./tests/reports",
+    "test:ci": "pest --coverage-clover coverage.xml",
+    "analyse": "phpstan analyse --memory-limit=2G",
+    "post-install-cmd": [
+      "[ -n \"$CI\" ] || pnpm install",
+      "ln -s AGENTS.md CLAUDE.md || exit 0"
+    ],
+    "post-update-cmd": [
+      "[ -n \"$CI\" ] || pnpm install"
+    ]
+  },
+  "minimum-stability": "dev",
+  "prefer-stable": true,
+  "config": {
+    "optimize-autoloader": true,
+    "sort-packages": true,
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
+  }
+}

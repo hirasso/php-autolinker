@@ -1,0 +1,20 @@
+# OS
+.DS_Store
+
+# Composer
+vendor
+composer.lock
+
+# node
+node_modules
+
+# tests
+coverage.xml
+tests/reports
+.phpunit.cache
+
+# claude
+.claude
+CLAUDE.md
+
+TODO.md
