@@ -62,6 +62,16 @@ test('links an email as a mailto anchor', function () {
         ->toBe('Mail <a href="mailto:me@example.com">me@example.com</a> please');
 });
 
+test('links an email that contains dots', function () {
+    expect(render('Mail me.myself.andi@foo.example.com please'))
+        ->toBe('Mail <a href="mailto:me.myself.andi@foo.example.com">me.myself.andi@foo.example.com</a> please');
+});
+
+test('links an email that contains +', function () {
+    expect(render('Mail me+spam@example.com please'))
+        ->toBe('Mail <a href="mailto:me+spam@example.com">me+spam@example.com</a> please');
+});
+
 test('links multiple items in one string', function () {
     expect(render('a http://a.com b foo@b.com c'))
         ->toBe('a <a href="http://a.com">a.com</a> b <a href="mailto:foo@b.com">foo@b.com</a> c');
