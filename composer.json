@@ -20,8 +20,11 @@
   },
   "autoload": {
     "psr-4": {
-      "Hirasso\\Prose\\": "src/"
-    }
+      "Hirasso\\Autolink\\": "src/"
+    },
+    "files": [
+      "src/helpers.php"
+    ]
   },
   "autoload-dev": {
     "psr-4": {

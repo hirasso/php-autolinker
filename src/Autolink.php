@@ -5,16 +5,17 @@ declare(strict_types=1);
 namespace Hirasso\Autolink;
 
 use Dom\HTMLDocument;
+use Dom\HTMLElement;
 use InvalidArgumentException;
 use Stringable;
 
 /**
- * Autolink plain urls in your HTML
+ * Autolink urls and email addresses in your HTML
  *
  * Framework-agnostic: pass a string, get a string back. Wire it into your
  * CMS / framework yourself (e.g. a WordPress `acf/format_value` filter).
  */
-final readonly class Autolink implements Stringable
+final class Autolink implements Stringable
 {
     private Options $options;
 
@@ -24,7 +25,7 @@ final readonly class Autolink implements Stringable
     }
 
     /**
-     * Create a new Obfuscator instance from a HTMLDocument (by reference)
+     * Create a new Autolink instance from a HTMLDocument (by reference)
      */
     public static function createFromDocument(HTMLDocument $document): self
     {
@@ -32,7 +33,7 @@ final readonly class Autolink implements Stringable
     }
 
     /**
-     * Create a new Obfuscator instance from a HTML string
+     * Create a new Autolink instance from a HTML string
      */
     public static function createFromString(string $source): self
     {
@@ -60,7 +61,7 @@ final readonly class Autolink implements Stringable
      */
     public function urls(bool $enable = true): self
     {
-        $this->options->modify(urls: $enable);
+        $this->options = $this->options->modify(urls: $enable);
         return $this;
     }
 
@@ -69,14 +70,43 @@ final readonly class Autolink implements Stringable
      */
     public function emails(bool $enable = true): self
     {
-        $this->options->modify(emails: $enable);
+        $this->options = $this->options->modify(emails: $enable);
+        return $this;
+    }
+
+    /**
+     * Strip the scheme from link texts
+     */
+    public function stripScheme(bool $enable = true): self
+    {
+        $this->options = $this->options->modify(stripScheme: $enable);
+        return $this;
+    }
+
+    /**
+     * Truncate link texts to a maximum length with ellipsis (0 disables)
+     */
+    public function truncateText(int $length): self
+    {
+        $this->options = $this->options->modify(truncateText: $length);
+        return $this;
+    }
+
+    /**
+     * Post-process each autolinked element
+     * @param callable(HTMLElement): mixed $callback
+     */
+    public function postProcess(callable $callback): self
+    {
+        $this->options = $this->options->modify(postProcess: $callback);
         return $this;
     }
 
     /**
      * Process a document with the selected options
      */
-    public function process(): self {
+    public function process(): self
+    {
         $processor = new Processor($this->options);
         $processor->run($this->document);
         return $this;
@@ -85,7 +115,8 @@ final readonly class Autolink implements Stringable
     /**
      * Allow to echo directly
      */
-    public function __toString(): string {
+    public function __toString(): string
+    {
         $this->process();
         return $this->document->body->innerHTML ?? '';
     }
