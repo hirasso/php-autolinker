@@ -1,5 +1,5 @@
 {
-  "name": "hirasso/php-autolink",
+  "name": "hirasso/autolink",
   "description": "Autolink urls and email addresses in your HTML 🐘",
   "type": "library",
   "license": "MIT",
