@@ -1,5 +1,11 @@
 # php-prose
 
+## 0.1.1
+
+### Patch Changes
+
+- 1a80a27: Initial Release
+
 ## 0.1.0
 
 ### Minor Changes
