@@ -1,6 +1,8 @@
 # Agent skills
 
-Autolink urls and email addresses in your HTML using PHP and a fluent API.
+Automatically link URLs, email addresses, @mentions and #hashtags
+in a given block of text/HTML. The public API is a single static method,
+`Autolinker::link()`.
 
 ## Key commands
 

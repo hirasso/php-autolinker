@@ -3,29 +3,7 @@
 declare(strict_types=1);
 
 use Dom\HTMLElement;
-use Hirasso\Autolinker\Options;
-use Hirasso\Autolinker\Processor;
-
-use function Hirasso\Autolinker\autolink;
-
-/**
- * Render a fragment through Autolinker with the default options
- */
-function render(string $html): string
-{
-    return (string) autolink($html);
-}
-
-/**
- * Render a fragment through the Processor with custom options
- */
-function renderWith(string $html, Options $options): string
-{
-    $doc = Dom\HTMLDocument::createFromString($html, LIBXML_NOERROR);
-    (new Processor($options))->run($doc);
-
-    return $doc->body->innerHTML;
-}
+use Hirasso\Autolinker\Autolinker;
 
 test('links a plain https url', function () {
     expect(render('Visit https://example.com now'))
@@ -53,7 +31,7 @@ test('strips a lone trailing slash from the visible text', function () {
 });
 
 test('does not strip the scheme when stripScheme is disabled', function () {
-    expect(renderWith('https://example.com', new Options(stripScheme: false)))
+    expect(Autolinker::link('https://example.com', stripScheme: false))
         ->toBe('<a href="https://example.com">https://example.com</a>');
 });
 
@@ -114,38 +92,40 @@ test('leaves text without urls or emails untouched', function () {
 });
 
 test('does not link urls when disabled', function () {
-    expect(renderWith('https://example.com', new Options(urls: false)))
+    expect(Autolinker::link('https://example.com', urls: false))
         ->toBe('https://example.com');
 });
 
 test('does not link emails when disabled', function () {
-    expect(renderWith('me@example.com', new Options(emails: false)))
+    expect(Autolinker::link('me@example.com', emails: false))
         ->toBe('me@example.com');
 });
 
-test('the fluent urls(false) toggle disables url linking', function () {
-    expect((string) autolink('https://example.com foo@bar.com')->urls(false))
+test('urls: false disables url linking but keeps emails', function () {
+    expect(Autolinker::link('https://example.com foo@bar.com', urls: false))
         ->toBe('https://example.com <a href="mailto:foo@bar.com">foo@bar.com</a>');
 });
 
-test('the fluent emails(false) toggle disables email linking', function () {
-    expect((string) autolink('https://example.com foo@bar.com')->emails(false))
+test('emails: false disables email linking but keeps urls', function () {
+    expect(Autolinker::link('https://example.com foo@bar.com', emails: false))
         ->toBe('<a href="https://example.com">example.com</a> foo@bar.com');
 });
 
-test('the fluent stripScheme(false) toggle keeps the scheme in the text', function () {
-    expect((string) autolink('https://example.com')->stripScheme(false))
+test('stripScheme: false keeps the scheme in the text', function () {
+    expect(Autolinker::link('https://example.com', stripScheme: false))
         ->toBe('<a href="https://example.com">https://example.com</a>');
 });
 
-test('the fluent truncateText toggle sets the max text length', function () {
-    expect((string) autolink('https://example.com/abcdefghij')->truncateText(15))
+test('truncateText sets the max text length', function () {
+    expect(Autolinker::link('https://example.com/abcdefghij', truncateText: 15))
         ->toBe('<a href="https://example.com/abcdefghij">example.com/ab…</a>');
 });
 
-test('the fluent postProcess toggle runs on created anchors', function () {
-    $html = (string) autolink('https://example.com')
-        ->postProcess(fn (HTMLElement $a) => $a->setAttribute('rel', 'nofollow'));
+test('postProcess runs on created anchors', function () {
+    $html = Autolinker::link(
+        'https://example.com',
+        postProcess: fn (HTMLElement $a) => $a->setAttribute('rel', 'nofollow'),
+    );
 
     expect($html)->toBe('<a href="https://example.com" rel="nofollow">example.com</a>');
 });
@@ -153,7 +133,7 @@ test('the fluent postProcess toggle runs on created anchors', function () {
 test('does not truncate when truncateText is 0', function () {
     $long = 'https://example.com/' . str_repeat('a', 100);
 
-    expect(renderWith($long, new Options(truncateText: 0)))
+    expect(Autolinker::link($long, truncateText: 0))
         ->toBe(sprintf('<a href="%s">%s</a>', $long, substr($long, strlen('https://'))));
 });
 
@@ -166,15 +146,19 @@ test('truncates long link text with an ellipsis', function () {
         ->and($html)->toContain('href="' . $long . '"');
 });
 
-test('applies the postProcess callback to created anchors', function () {
+test('a Dom\HTMLDocument is mutated by reference and returned', function () {
     $doc = Dom\HTMLDocument::createFromString('<p>https://example.com</p>', LIBXML_NOERROR);
 
-    $options = new Options(postProcess: function (HTMLElement $a) {
+    $result = Autolinker::link($doc, postProcess: function (HTMLElement $a) {
         $a->setAttribute('class', 'external');
     });
 
-    (new Hirasso\Autolinker\Processor($options))->run($doc);
-
-    expect($doc->body->innerHTML)
+    expect($result)->toBe($doc)
+        ->and($doc->body->innerHTML)
         ->toBe('<p><a href="https://example.com" class="external">example.com</a></p>');
+});
+
+test('rejects a full HTML document', function () {
+    expect(fn () => Autolinker::link('<!doctype html><p>https://example.com</p>'))
+        ->toThrow(InvalidArgumentException::class);
 });

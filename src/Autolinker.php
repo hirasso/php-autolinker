@@ -7,39 +7,47 @@ namespace Hirasso\Autolinker;
 use Dom\HTMLDocument;
 use Dom\HTMLElement;
 use InvalidArgumentException;
-use Stringable;
 
 /**
- * Autolink urls and email addresses in your HTML
+ * Automatically link URLs and email addresses in a given block of text/HTML.
  *
  * Framework-agnostic: pass a string, get a string back. Wire it into your
  * CMS / framework yourself (e.g. a WordPress `acf/format_value` filter).
  */
-final class Autolinker implements Stringable
+final class Autolinker
 {
-    private Options $options;
-
-    private function __construct(private HTMLDocument $document)
-    {
-        $this->options = new Options();
-    }
-
     /**
-     * Create a new Autolinker instance from a HTMLDocument (by reference)
+     * Autolink urls and email addresses in an HTML fragment or `Dom\HTMLDocument`.
+     *
+     * A string returns the linked HTML. A `Dom\HTMLDocument` is modified by
+     * reference and returns the same document.
+     *
+     * @param ?callable(HTMLElement): mixed $postProcess post-process each created anchor
+     * @return ($source is string ? string : HTMLDocument)
      */
-    public static function createFromDocument(HTMLDocument $document): self
-    {
-        return new self($document);
-    }
+    public static function link(
+        string|HTMLDocument $source,
+        bool $urls = true,
+        bool $emails = true,
+        bool $stripScheme = true,
+        int $truncateText = 50,
+        ?callable $postProcess = null,
+    ): string|HTMLDocument {
+        $document = is_string($source)
+            ? HTMLDocument::createFromString(self::parseSource($source), LIBXML_NOERROR)
+            : $source;
 
-    /**
-     * Create a new Autolinker instance from a HTML string
-     */
-    public static function createFromString(string $source): self
-    {
-        $source = self::parseSource($source);
+        $processor = new Processor(
+            urls: $urls,
+            emails: $emails,
+            stripScheme: $stripScheme,
+            truncateText: $truncateText,
+            postProcess: $postProcess,
+        );
 
-        return new self(HTMLDocument::createFromString($source, LIBXML_NOERROR));
+        $processor->run($document);
+
+        return is_string($source) ? $document->body->innerHTML ?? '' : $source;
     }
 
     /**
@@ -55,70 +63,4 @@ final class Autolinker implements Stringable
         }
         return $source;
     }
-
-    /**
-     * Autolink URLs
-     */
-    public function urls(bool $enable = true): self
-    {
-        $this->options = $this->options->modify(urls: $enable);
-        return $this;
-    }
-
-    /**
-     * Autolink emails
-     */
-    public function emails(bool $enable = true): self
-    {
-        $this->options = $this->options->modify(emails: $enable);
-        return $this;
-    }
-
-    /**
-     * Strip the scheme from link texts
-     */
-    public function stripScheme(bool $enable = true): self
-    {
-        $this->options = $this->options->modify(stripScheme: $enable);
-        return $this;
-    }
-
-    /**
-     * Truncate link texts to a maximum length with ellipsis (0 disables)
-     */
-    public function truncateText(int $length): self
-    {
-        $this->options = $this->options->modify(truncateText: $length);
-        return $this;
-    }
-
-    /**
-     * Post-process each autolinked element
-     * @param callable(HTMLElement): mixed $callback
-     */
-    public function postProcess(callable $callback): self
-    {
-        $this->options = $this->options->modify(postProcess: $callback);
-        return $this;
-    }
-
-    /**
-     * Process a document with the selected options
-     */
-    public function process(): self
-    {
-        $processor = new Processor($this->options);
-        $processor->run($this->document);
-        return $this;
-    }
-
-    /**
-     * Allow to echo directly
-     */
-    public function __toString(): string
-    {
-        $this->process();
-        return $this->document->body->innerHTML ?? '';
-    }
-
 }

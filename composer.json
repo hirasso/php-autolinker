@@ -1,6 +1,6 @@
 {
   "name": "hirasso/autolinker",
-  "description": "Autolink urls and email addresses in your HTML 🐘",
+  "description": "Automatically link URLs and email addresses in a given block of text/HTML 🖇️",
   "type": "library",
   "license": "MIT",
   "authors": [
@@ -21,10 +21,7 @@
   "autoload": {
     "psr-4": {
       "Hirasso\\Autolinker\\": "src/"
-    },
-    "files": [
-      "src/helpers.php"
-    ]
+    }
   },
   "autoload-dev": {
     "psr-4": {
