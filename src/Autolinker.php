@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Hirasso\Autolink;
+namespace Hirasso\Autolinker;
 
 use Dom\HTMLDocument;
 use Dom\HTMLElement;
@@ -15,7 +15,7 @@ use Stringable;
  * Framework-agnostic: pass a string, get a string back. Wire it into your
  * CMS / framework yourself (e.g. a WordPress `acf/format_value` filter).
  */
-final class Autolink implements Stringable
+final class Autolinker implements Stringable
 {
     private Options $options;
 
@@ -25,7 +25,7 @@ final class Autolink implements Stringable
     }
 
     /**
-     * Create a new Autolink instance from a HTMLDocument (by reference)
+     * Create a new Autolinker instance from a HTMLDocument (by reference)
      */
     public static function createFromDocument(HTMLDocument $document): self
     {
@@ -33,7 +33,7 @@ final class Autolink implements Stringable
     }
 
     /**
-     * Create a new Autolink instance from a HTML string
+     * Create a new Autolinker instance from a HTML string
      */
     public static function createFromString(string $source): self
     {
@@ -43,13 +43,13 @@ final class Autolink implements Stringable
     }
 
     /**
-     * Guard against full HTML documents: Autolink should only run against HTML fragments
+     * Guard against full HTML documents: Autolinker should only run against HTML fragments
      */
     private static function parseSource(string $source): string
     {
         if (preg_match('/<!doctype[\s>]|<(?:html|head|body)[\s>]/i', $source) === 1) {
             throw new InvalidArgumentException(
-                'Autolink expects a html fragment, not a full document '
+                'Autolinker expects a html fragment, not a full document '
                 . '(<!doctype>, <html>, <head> or <body> found).'
             );
         }

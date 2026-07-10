@@ -2,15 +2,15 @@
 
 declare(strict_types=1);
 
-namespace Hirasso\Autolink;
+namespace Hirasso\Autolinker;
 
 /**
  * Autolink a HTML string or \Dom\HTMLDocument
  */
-function autolink(string|\Dom\HTMLDocument $source): Autolink
+function autolink(string|\Dom\HTMLDocument $source): Autolinker
 {
     return match(true) {
-        is_string($source) => Autolink::createFromString($source),
-        default => Autolink::createFromDocument($source)
+        is_string($source) => Autolinker::createFromString($source),
+        default => Autolinker::createFromDocument($source)
     };
 }

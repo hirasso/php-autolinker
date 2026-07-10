@@ -1,5 +1,5 @@
 {
-  "name": "hirasso/autolink",
+  "name": "hirasso/autolinker",
   "description": "Autolink urls and email addresses in your HTML 🐘",
   "type": "library",
   "license": "MIT",
@@ -20,7 +20,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Hirasso\\Autolink\\": "src/"
+      "Hirasso\\Autolinker\\": "src/"
     },
     "files": [
       "src/helpers.php"

@@ -1,8 +1,8 @@
-# hirasso/php-autolink
+# hirasso/php-autolinker
 
-[![Latest Version on Packagist](https://img.shields.io/packagist/v/hirasso/autolink?style=flat-square&logo=packagist&logoColor=white)](https://packagist.org/packages/hirasso/autolink)
-[![Test Status](https://img.shields.io/github/actions/workflow/status/hirasso/php-autolink/ci.yml?style=flat-square&logo=github&label=tests)](https://github.com/hirasso/php-autolink/actions/workflows/ci.yml)
-[![Code Coverage](https://img.shields.io/codecov/c/github/hirasso/php-autolink?style=flat-square&logo=codecov&logoColor=white&label=coverage%20%28whatever%20that%20entails%29)](https://app.codecov.io/gh/hirasso/php-autolink)
+[![Latest Version on Packagist](https://img.shields.io/packagist/v/hirasso/autolinker?style=flat-square&logo=packagist&logoColor=white)](https://packagist.org/packages/hirasso/autolinker)
+[![Test Status](https://img.shields.io/github/actions/workflow/status/hirasso/php-autolinker/ci.yml?style=flat-square&logo=github&label=tests)](https://github.com/hirasso/php-autolinker/actions/workflows/ci.yml)
+[![Code Coverage](https://img.shields.io/codecov/c/github/hirasso/php-autolinker?style=flat-square&logo=codecov&logoColor=white&label=coverage%20%28whatever%20that%20entails%29)](https://app.codecov.io/gh/hirasso/php-autolinker)
 
 **Autolink urls and email addresses in your HTML 🐘**
 
@@ -17,7 +17,7 @@ yourself (e.g. a WordPress `acf/format_value` filter).
 ## Installation
 
 ```bash
-composer require hirasso/php-autolink
+composer require hirasso/autolinker
 ```
 
 ## Usage
@@ -25,7 +25,7 @@ composer require hirasso/php-autolink
 Pass a string, cast the result back to a string:
 
 ```php
-use function Hirasso\Autolink\autolink;
+use function Hirasso\Autolinker\autolink;
 
 echo autolink('Visit https://example.com or mail me@example.com');
 // Visit <a href="https://example.com">example.com</a>
@@ -57,7 +57,7 @@ chain in any order:
 
 ```php
 use Dom\HTMLElement;
-use function Hirasso\Autolink\autolink;
+use function Hirasso\Autolinker\autolink;
 
 echo autolink($html)
     ->urls(true)                 // link urls (default: true)
@@ -90,7 +90,7 @@ If you already have a document, pass it directly. It is modified by reference:
 
 ```php
 use Dom\HTMLDocument;
-use function Hirasso\Autolink\autolink;
+use function Hirasso\Autolinker\autolink;
 
 $doc = HTMLDocument::createFromString($html, LIBXML_NOERROR);
 autolink($doc)->process();

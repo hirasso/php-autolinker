@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Hirasso\Autolink;
+namespace Hirasso\Autolinker;
 
 use Dom\Document;
 use Dom\HTMLDocument;

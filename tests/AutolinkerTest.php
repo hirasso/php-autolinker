@@ -3,13 +3,13 @@
 declare(strict_types=1);
 
 use Dom\HTMLElement;
-use Hirasso\Autolink\Options;
-use Hirasso\Autolink\Processor;
+use Hirasso\Autolinker\Options;
+use Hirasso\Autolinker\Processor;
 
-use function Hirasso\Autolink\autolink;
+use function Hirasso\Autolinker\autolink;
 
 /**
- * Render a fragment through Autolink with the default options
+ * Render a fragment through Autolinker with the default options
  */
 function render(string $html): string
 {
@@ -173,7 +173,7 @@ test('applies the postProcess callback to created anchors', function () {
         $a->setAttribute('class', 'external');
     });
 
-    (new Hirasso\Autolink\Processor($options))->run($doc);
+    (new Hirasso\Autolinker\Processor($options))->run($doc);
 
     expect($doc->body->innerHTML)
         ->toBe('<p><a href="https://example.com" class="external">example.com</a></p>');

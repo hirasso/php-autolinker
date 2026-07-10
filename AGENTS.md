@@ -20,7 +20,7 @@ Autolink urls and email addresses in your HTML using PHP and a fluent API.
 
 - add matching tests for each new feature
 - run `composer test` and `composer analyse`
-- If it makes sense for a change, suggest a changeset message and level (patch/minor/major) and write it into the `./.changeset` folder. Commit it together with the changes. Respect the package name `php-prose`
+- If it makes sense for a change, suggest a changeset message and level (patch/minor/major) and write it into the `./.changeset` folder. Commit it together with the changes.
 
 ## Pull requests
 
