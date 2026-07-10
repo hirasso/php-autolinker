@@ -13,26 +13,8 @@ permissions:
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 
 jobs:
-  package-infos:
-    name: Get Package Infos
-    runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
-    outputs:
-      fullName: ${{ steps.package-infos.outputs.fullName }}
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
-
-      - name: Read and Write Package Infos to Output
-        id: package-infos
-        run: |
-          NAME=$(jq -r '.name' composer.json)
-          echo "fullName=${NAME}" >> $GITHUB_OUTPUT
-          cat "$GITHUB_OUTPUT"
-
   release:
-    needs: package-infos
-    if: ${{ github.repository == needs.package-infos.outputs.fullName }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.repository_owner == 'hirasso' }}
 
     name: Create Version PR or Publish
     runs-on: ubuntu-latest
