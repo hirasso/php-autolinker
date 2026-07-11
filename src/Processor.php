@@ -4,7 +4,6 @@ declare(strict_types=1);
 
 namespace Hirasso\Autolinker;
 
-use Closure;
 use Dom\Document;
 use Dom\HTMLDocument;
 use Dom\HTMLElement;
@@ -16,22 +15,9 @@ final readonly class Processor
     /** Characters trimmed from the trailing end of a match (they belong to the prose, not the link) */
     private const TRAILING_PUNCTUATION = '.,;:!?';
 
-    /** @var ?Closure(HTMLElement): mixed */
-    private ?Closure $postProcess;
-
-    /**
-     * @param ?callable(HTMLElement): mixed $postProcess post-process each created anchor
-     */
     public function __construct(
-        private bool $urls = true,
-        private bool $emails = true,
-        private bool $stripScheme = true,
-        private int $truncateText = 50,
-        ?callable $postProcess = null,
+        private AutolinkerOptions $options,
     ) {
-        $this->postProcess = $postProcess !== null
-            ? Closure::fromCallable($postProcess)
-            : null;
     }
 
     /**
@@ -67,10 +53,10 @@ final readonly class Processor
     private function linkify(string $text): ?string
     {
         $alternatives = [];
-        if ($this->urls) {
+        if ($this->options->urls) {
             $alternatives[] = '(?<url>(?:https?://|www\.)[^\s<>]+)';
         }
-        if ($this->emails) {
+        if ($this->options->emails) {
             $alternatives[] = '(?<email>[\w.+-]+@[\w-]+(?:\.[\w-]+)+)';
         }
 
@@ -112,7 +98,7 @@ final readonly class Processor
      */
     private function linkUrls(string $str): string
     {
-        if (!$this->urls) {
+        if (!$this->options->urls) {
             return $this->escape($str);
         }
 
@@ -129,7 +115,7 @@ final readonly class Processor
      */
     private function linkEmails(string $str): string
     {
-        if (!$this->emails) {
+        if (!$this->options->emails) {
             return $this->escape($str);
         }
 
@@ -146,7 +132,7 @@ final readonly class Processor
     {
         $text = $url;
 
-        if ($this->stripScheme) {
+        if ($this->options->stripScheme) {
             $text = preg_replace('~^https?://~i', '', $text) ?? $text;
             $text = preg_replace('~/$~', '', $text) ?? $text;
         }
@@ -160,7 +146,7 @@ final readonly class Processor
      */
     private function truncate(string $text): string
     {
-        $limit = $this->truncateText;
+        $limit = $this->options->truncateText;
 
         if ($limit <= 0 || mb_strlen($text) <= $limit) {
             return $text;
@@ -228,10 +214,10 @@ final readonly class Processor
         $container = $doc->createElement('div');
         $container->innerHTML = $html;
 
-        if ($this->postProcess !== null) {
+        if ($this->options->postProcess !== null) {
             foreach ($container->getElementsByTagName('a') as $anchor) {
                 if ($anchor instanceof HTMLElement) {
-                    ($this->postProcess)($anchor);
+                    ($this->options->postProcess)($anchor);
                 }
             }
         }

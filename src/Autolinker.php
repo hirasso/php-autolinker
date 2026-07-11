@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Hirasso\Autolinker;
 
 use Dom\HTMLDocument;
-use Dom\HTMLElement;
 use InvalidArgumentException;
 
 /**
@@ -22,28 +21,17 @@ final class Autolinker
      * A string returns the linked HTML. A `Dom\HTMLDocument` is modified by
      * reference and returns the same document.
      *
-     * @param ?callable(HTMLElement): mixed $postProcess post-process each created anchor
      * @return ($source is string ? string : HTMLDocument)
      */
     public static function link(
         string|HTMLDocument $source,
-        bool $urls = true,
-        bool $emails = true,
-        bool $stripScheme = true,
-        int $truncateText = 50,
-        ?callable $postProcess = null,
+        ?AutolinkerOptions $options = null,
     ): string|HTMLDocument {
         $document = is_string($source)
             ? HTMLDocument::createFromString(self::parseSource($source), LIBXML_NOERROR)
             : $source;
 
-        $processor = new Processor(
-            urls: $urls,
-            emails: $emails,
-            stripScheme: $stripScheme,
-            truncateText: $truncateText,
-            postProcess: $postProcess,
-        );
+        $processor = new Processor($options ?? new AutolinkerOptions());
 
         $processor->run($document);
 
