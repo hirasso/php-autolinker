@@ -21,11 +21,15 @@ final readonly class Processor
     }
 
     /**
-     * Run the processor against a HTMLDocument
+     * Run the processor against a HTMLDocument's <body>
      */
-    public function run(HTMLDocument $doc): void
+    public function run(HTMLDocument $document): void
     {
-        foreach ($this->getNonEmptyTextNodes($doc) as $node) {
+        if (!$document->body) {
+            return;
+        }
+
+        foreach ($this->getNonEmptyTextNodes($document) as $node) {
             $this->processTextNode($node);
         };
     }
@@ -233,8 +237,10 @@ final readonly class Processor
      * Get all (non-empty) text nodes
      * @return list<\Dom\Text>
      */
-    private function getNonEmptyTextNodes(HTMLDocument $doc, ?HTMLElement $context = null): array
+    private function getNonEmptyTextNodes(HTMLDocument $document, ?HTMLElement $context = null): array
     {
+        $context ??= $document->body;
+
         $query = $context
             ? './/text()[normalize-space() != ""]'
             : '//text()[normalize-space() != ""]';
@@ -243,7 +249,7 @@ final readonly class Processor
 
         /** @var list<\Dom\Text> */
         return array_values(array_filter(
-            [...new XPath($doc)->query($query, $context)],
+            [...new XPath($document)->query($query, $context)],
             fn ($node) =>
                 $node->textContent
                 && !$this->isWhitespaceOnly($node->textContent)
