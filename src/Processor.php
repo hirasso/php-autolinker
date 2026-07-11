@@ -15,6 +15,13 @@ final readonly class Processor
     /** Characters trimmed from the trailing end of a match (they belong to the prose, not the link) */
     private const TRAILING_PUNCTUATION = '.,;:!?';
 
+    /** Elements whose text content should never be autolinked */
+    private const IGNORE_SELECTORS = [
+        'a', 'button', 'script', 'style', 'svg', 'noscript',
+        'textarea', 'select', 'iframe', 'canvas',
+        'pre', 'code', 'kbd', 'samp', 'var', 'math',
+    ];
+
     public function __construct(
         private AutolinkerOptions $options,
     ) {
@@ -25,10 +32,6 @@ final readonly class Processor
      */
     public function run(HTMLDocument $document): void
     {
-        if (!$document->body) {
-            return;
-        }
-
         foreach ($this->getNonEmptyTextNodes($document) as $node) {
             $this->processTextNode($node);
         };
@@ -237,22 +240,19 @@ final readonly class Processor
      * Get all (non-empty) text nodes
      * @return list<\Dom\Text>
      */
-    private function getNonEmptyTextNodes(HTMLDocument $document, ?HTMLElement $context = null): array
+    private function getNonEmptyTextNodes(HTMLDocument $document): array
     {
-        $context ??= $document->body;
+        if (!$document->body) {
+            return [];
+        }
 
-        $query = $context
-            ? './/text()[normalize-space() != ""]'
-            : '//text()[normalize-space() != ""]';
-
-        $ignoreList = 'head, script, style, svg, noscript, title, textarea, select, iframe, canvas, pre, code, a';
+        $ignoreList = implode(', ', self::IGNORE_SELECTORS);
 
         /** @var list<\Dom\Text> */
         return array_values(array_filter(
-            [...new XPath($document)->query($query, $context)],
+            [...new XPath($document)->query('.//text()[normalize-space() != ""]', $document->body)],
             fn ($node) =>
-                $node->textContent
-                && !$this->isWhitespaceOnly($node->textContent)
+                !$this->isWhitespaceOnly($node->textContent ?? '')
                 && !$node->parentElement?->closest($ignoreList)
         ));
     }
