@@ -45,13 +45,18 @@ final class Autolinker
     }
 
     /**
-     * Get the string before and after the body, if any
+     * Get the strings before and after the body.
+     *
+     * `before` is everything up to and including the opening `<body …>` tag,
+     * `after` is the closing `</body>` and everything past it. This lets a full
+     * document round-trip: only the body's inner HTML gets autolinked, while the
+     * doctype, `<head>`, body attributes and wrapper are preserved verbatim.
      *
      * @return array{0: string, 1: string}
      */
     private static function getBeforeAndAfter(string $source): array
     {
-        preg_match('/(?<before><body[\s>])(?<content>.*)(?<after><\/body>.*)/', $source, $matches);
+        preg_match('/(?<before>.*<body[^>]*>)(?<content>.*)(?<after><\/body>.*)/is', $source, $matches);
 
         return [
             $matches['before'] ?? '',

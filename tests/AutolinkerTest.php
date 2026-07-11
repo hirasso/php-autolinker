@@ -161,7 +161,41 @@ test('a Dom\HTMLDocument is mutated by reference and returned', function () {
         ->toBe('<p><a href="https://example.com" class="external">example.com</a></p>');
 });
 
-test('rejects a full HTML document', function () {
-    expect(fn () => Autolinker::link('<!doctype html><p>https://example.com</p>'))
-        ->toThrow(InvalidArgumentException::class);
+test('round-trips a body-wrapped fragment, preserving the body tag', function () {
+    expect(render('<body>Visit https://example.com</body>'))
+        ->toBe('<body>Visit <a href="https://example.com">example.com</a></body>');
+});
+
+test('preserves body attributes when round-tripping', function () {
+    expect(render('<body class="x">Visit https://example.com</body>'))
+        ->toBe('<body class="x">Visit <a href="https://example.com">example.com</a></body>');
+});
+
+test('preserves the head and wrapper of a full document, linking only the body', function () {
+    $doc = '<html><head><title>t</title></head><body>Visit https://example.com</body></html>';
+
+    expect(render($doc))
+        ->toBe('<html><head><title>t</title></head><body>Visit <a href="https://example.com">example.com</a></body></html>');
+});
+
+test('preserves HTML comments outside the body', function () {
+    $doc = '<!-- top --><html><head><!-- meta --></head>'
+        . '<body>Visit https://example.com</body></html><!-- bottom -->';
+
+    expect(render($doc))
+        ->toBe('<!-- top --><html><head><!-- meta --></head>'
+            . '<body>Visit <a href="https://example.com">example.com</a></body></html><!-- bottom -->');
+});
+
+test('preserves the doctype and wrapper of a multi-line document', function () {
+    // The body's inner whitespace is normalized by the DOM parser, so we assert
+    // the doctype/head/wrapper survive verbatim and the link is created, rather
+    // than a byte-exact match.
+    $doc = "<!doctype html>\n<html>\n<head></head>\n<body>\nVisit https://example.com\n</body>\n</html>";
+    $out = render($doc);
+
+    expect($out)
+        ->toStartWith("<!doctype html>\n<html>\n<head></head>\n<body>")
+        ->toEndWith("</body>\n</html>")
+        ->toContain('<a href="https://example.com">example.com</a>');
 });
