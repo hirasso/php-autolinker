@@ -215,7 +215,7 @@ final readonly class Processor
         $container->innerHTML = $html;
 
         if ($this->options->postProcess !== null) {
-            foreach ($container->getElementsByTagName('a') as $anchor) {
+            foreach ($container->querySelectorAll('a') as $anchor) {
                 if ($anchor instanceof HTMLElement) {
                     ($this->options->postProcess)($anchor);
                 }

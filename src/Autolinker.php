@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Hirasso\Autolinker;
 
 use Dom\HTMLDocument;
-use InvalidArgumentException;
 
 /**
  * Automatically link URLs and email addresses in a given block of text/HTML.
@@ -27,28 +26,36 @@ final class Autolinker
         string|HTMLDocument $source,
         ?AutolinkerOptions $options = null,
     ): string|HTMLDocument {
+
         $document = is_string($source)
-            ? HTMLDocument::createFromString(self::parseSource($source), LIBXML_NOERROR)
+            ? HTMLDocument::createFromString($source, LIBXML_NOERROR)
             : $source;
 
         $processor = new Processor($options ?? new AutolinkerOptions());
 
         $processor->run($document);
 
-        return is_string($source) ? $document->body->innerHTML ?? '' : $source;
+        if ($source instanceof HTMLDocument) {
+            return $document;
+        }
+
+        [$before, $after] = self::getBeforeAndAfter($source);
+
+        return $before . ($document->body->innerHTML ?? '') . $after;
     }
 
     /**
-     * Guard against full HTML documents: Autolinker should only run against HTML fragments
+     * Get the string before and after the body, if any
+     *
+     * @return array{0: string, 1: string}
      */
-    private static function parseSource(string $source): string
+    private static function getBeforeAndAfter(string $source): array
     {
-        if (preg_match('/<!doctype[\s>]|<(?:html|head|body)[\s>]/i', $source) === 1) {
-            throw new InvalidArgumentException(
-                'Autolinker expects a html fragment, not a full document '
-                . '(<!doctype>, <html>, <head> or <body> found).'
-            );
-        }
-        return $source;
+        preg_match('/(?<before><body[\s>])(?<content>.*)(?<after><\/body>.*)/', $source, $matches);
+
+        return [
+            $matches['before'] ?? '',
+            $matches['after'] ?? '',
+        ];
     }
 }
