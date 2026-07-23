@@ -32,10 +32,22 @@ echo Autolinker::link('Visit https://example.com or mail me@example.com');
 // or mail <a href="mailto:me@example.com">me@example.com</a>
 ```
 
-`Autolinker::link()` accepts an HTML fragment (not a full document) or an
-existing `Dom\HTMLDocument`. Only text is linked — content inside existing links
-and inside `head, script, style, svg, noscript, title, textarea, select, iframe,
-canvas, pre, code` is left untouched, and no nested anchors are created.
+`Autolinker::link()` accepts an HTML fragment, a full (or partial) HTML document
+or an existing `Dom\HTMLDocument`. Only text is linked. Elements where autolinking doesn't make sense (like e.g. `button, script, style, svg, noscript, title, textarea, select, pre, code, etc...`),
+are skipped.
+
+If you pass a full or partial document, only the body's inner HTML is linked;
+the doctype, `<head>`, body attributes, comments and anything wrapping the body
+are preserved verbatim:
+
+```php
+echo Autolinker::link(
+    '<!doctype html><html><head><title>t</title></head>'
+    . '<body class="x">Visit https://example.com</body></html>'
+);
+// <!doctype html><html><head><title>t</title></head>
+// <body class="x">Visit <a href="https://example.com">example.com</a></body></html>
+```
 
 ### What gets linked
 
@@ -52,14 +64,14 @@ echo Autolinker::link('See https://example.com.');
 
 ### Options
 
-Configure the output with named arguments:
+Pass an `AutolinkerOptions` object as the second argument to configure the output:
 
 ```php
 use Dom\HTMLElement;
 use Hirasso\Autolinker\Autolinker;
+use Hirasso\Autolinker\AutolinkerOptions;
 
-echo Autolinker::link(
-    $html,
+echo Autolinker::link($html, new AutolinkerOptions(
     urls: true,          // link urls (default: true)
     emails: true,        // link emails (default: true)
     stripScheme: true,   // strip the scheme from link texts (default: true)
@@ -68,16 +80,18 @@ echo Autolinker::link(
         // called for each anchor this library creates
         $a->setAttribute('rel', 'noopener');
     },
-);
+));
 ```
 
-`stripScheme` only affects the visible text, never the `href`:
+`AutolinkerOptions` is immutable and every option is optional, so you only need
+to set the ones you want to change. `stripScheme` only affects the visible text,
+never the `href`:
 
 ```php
 echo Autolinker::link('https://example.com/path');
 // <a href="https://example.com/path">example.com/path</a>
 
-echo Autolinker::link('https://example.com/path', stripScheme: false);
+echo Autolinker::link('https://example.com/path', new AutolinkerOptions(stripScheme: false));
 // <a href="https://example.com/path">https://example.com/path</a>
 ```
 
@@ -88,7 +102,7 @@ library creates and never touches links that were already in your HTML.
 ### Working with a `Dom\HTMLDocument`
 
 If you already have a document, pass it directly. It is modified by reference and
-`link()` returns `null`:
+returned as-is (rather than serialized back to a string):
 
 ```php
 use Dom\HTMLDocument;
