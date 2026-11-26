@@ -33,7 +33,7 @@ echo Autolinker::link('Visit https://example.com or mail me@example.com');
 ```
 
 `Autolinker::link()` accepts an HTML fragment, a full (or partial) HTML document
-or an existing `Dom\HTMLDocument`. Only text is linked. Elements where autolinking doesn't make sense (like e.g. `button, script, style, svg, noscript, title, textarea, select, pre, code, etc...`),
+or an existing `Dom\HTMLDocument`. Only text is linked. Elements where autolinking doesn't make sense (like e.g. `a, button, script, style, svg, textarea, select, pre, code, kbd, etc...`),
 are skipped.
 
 If you pass a full or partial document, only the body's inner HTML is linked;
@@ -64,14 +64,13 @@ echo Autolinker::link('See https://example.com.');
 
 ### Options
 
-Pass an `AutolinkerOptions` object as the second argument to configure the output:
+Configure the output with named arguments:
 
 ```php
 use Dom\HTMLElement;
 use Hirasso\Autolinker\Autolinker;
-use Hirasso\Autolinker\AutolinkerOptions;
 
-echo Autolinker::link($html, new AutolinkerOptions(
+echo Autolinker::link($html,
     urls: true,          // link urls (default: true)
     emails: true,        // link emails (default: true)
     stripScheme: true,   // strip the scheme from link texts (default: true)
@@ -80,18 +79,18 @@ echo Autolinker::link($html, new AutolinkerOptions(
         // called for each anchor this library creates
         $a->setAttribute('rel', 'noopener');
     },
-));
+);
 ```
 
-`AutolinkerOptions` is immutable and every option is optional, so you only need
-to set the ones you want to change. `stripScheme` only affects the visible text,
-never the `href`:
+Every option is optional, so you only need to set the ones you want to change.
+To reuse a configuration, spread an array: `Autolinker::link($html, ...$config)`.
+`stripScheme` only affects the visible text, never the `href`:
 
 ```php
 echo Autolinker::link('https://example.com/path');
 // <a href="https://example.com/path">example.com/path</a>
 
-echo Autolinker::link('https://example.com/path', new AutolinkerOptions(stripScheme: false));
+echo Autolinker::link('https://example.com/path', stripScheme: false);
 // <a href="https://example.com/path">https://example.com/path</a>
 ```
 

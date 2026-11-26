@@ -1,7 +1,6 @@
 # Agent skills
 
-Automatically link URLs, email addresses, @mentions and #hashtags
-in a given block of text/HTML. The public API is a single static method,
+Automatically link URLs and email addresses in a given block of text/HTML. The public API is a single static method,
 `Autolinker::link()`.
 
 ## Key commands
