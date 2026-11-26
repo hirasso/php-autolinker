@@ -184,18 +184,20 @@ test('preserves HTML comments outside the body', function () {
             . '<body>Visit <a href="https://example.com">example.com</a></body></html><!-- bottom -->');
 });
 
-test('preserves the doctype and wrapper of a multi-line document', function () {
-    // The body's inner whitespace is normalized by the DOM parser, so we assert
-    // the doctype/head/wrapper survive verbatim and the link is created, rather
-    // than a byte-exact match.
-    $doc = "<!doctype html>\n<html>\n<head></head>\n<body>\nVisit https://example.com\n</body>\n</html>";
-    $out = render($doc);
-
-    expect($out)
-        ->toStartWith("<!doctype html>\n<html>\n<head></head>\n<body>")
-        ->toEndWith("</body>\n</html>")
-        ->toContain('<a href="https://example.com">example.com</a>');
+test('preserves a multi-line document byte for byte', function () {
+    expect(render("<!doctype html>\n<html>\n<head></head>\n<body>\nVisit https://example.com\n</body>\n</html>\n"))
+        ->toBe("<!doctype html>\n<html>\n<head></head>\n<body>\nVisit <a href=\"https://example.com\">example.com</a>\n</body>\n</html>\n");
 });
+
+test('preserves whitespace around and inside the body verbatim', function (string $html) {
+    expect(render($html))->toBe($html);
+})->with([
+    'whitespace only' => ['   '],
+    'fragment' => [' x '],
+    'after doctype' => ["<!doctype html>\n<p>a</p>"],
+    'after head' => ["<head></head>\n<p>a</p>"],
+    'after body' => ["<body>x</body>\n"],
+]);
 
 test('preserves the head of a document without a closing body tag', function () {
     expect(render('<html><head><title>t</title></head><body>https://a.com'))

@@ -32,9 +32,9 @@ final class Autolinker
         int $truncateText = 50,
         ?callable $postProcess = null,
     ): string|HTMLDocument {
-        $document = is_string($source)
-            ? HTMLDocument::createFromString($source, LIBXML_NOERROR)
-            : $source;
+        [$document, $before, $after] = is_string($source)
+            ? self::parse($source)
+            : [$source, '', ''];
 
         $processor = new Processor(
             urls: $urls,
@@ -50,19 +50,33 @@ final class Autolinker
             return $document;
         }
 
-        [$before, $after] = self::getBeforeAndAfter($source);
-
         return $before . ($document->body->innerHTML ?? '') . $after;
     }
 
     /**
-     * Get the strings before and after the body's content, so that only the
-     * body gets re-serialized and everything around it is preserved verbatim.
+     * Parse only the body's content of $source, and get the verbatim strings around it.
+     * Parsing in body mode keeps leading/trailing whitespace exact.
+     *
+     * @return array{0: HTMLDocument, 1: string, 2: string}
+     */
+    private static function parse(string $source): array
+    {
+        [$before, $body, $after] = self::splitAtBody($source);
+
+        return [
+            HTMLDocument::createFromString('<!doctype html><body>' . $body, LIBXML_NOERROR),
+            $before,
+            $after,
+        ];
+    }
+
+    /**
+     * Split $source into the strings before, inside and after the body's content.
      * Falls back to `</head>`, `<html>` or the doctype if there is no `<body>`.
      *
-     * @return array{0: string, 1: string}
+     * @return array{0: string, 1: string, 2: string}
      */
-    private static function getBeforeAndAfter(string $source): array
+    private static function splitAtBody(string $source): array
     {
         /** blank out comments and raw text elements, so tags inside them aren't matched */
         $masked = preg_replace_callback(
@@ -81,7 +95,11 @@ final class Autolinker
             ?? self::getOffset($masked, '/<\/html\s*>/i', $start)
             ?? strlen($source);
 
-        return [substr($source, 0, $start), substr($source, $end)];
+        return [
+            substr($source, 0, $start),
+            substr($source, $start, $end - $start),
+            substr($source, $end),
+        ];
     }
 
     /**
